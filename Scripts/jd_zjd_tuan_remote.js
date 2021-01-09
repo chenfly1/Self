@@ -1,12 +1,11 @@
 /*
-感谢sazs34大佬的替换思路和脚本https://github.com/sazs34
-感谢ZIYE制作的企鹅阅读脚本https://github.com/18u
+https://raw.githubusercontent.com/whyour/hundun/master/quanx/jd_zjd_tuan.js
 */
 const exec = require("child_process").execSync;
 const fs = require("fs");
 const axios = require("axios");
 
-const $ = new Env('企鹅阅读');
+const $ = new Env('京东赚京豆开团');
 const notify = $.isNode() ? require('../sendNotify') : '';
 
 // 公共变量
@@ -16,7 +15,7 @@ const Secrets = {
     BARK_PUSH: process.env.BARK_PUSH, //Bark推送
     TG_BOT_TOKEN: process.env.TG_BOT_TOKEN, //TGBot推送Token
     TG_USER_ID: process.env.TG_USER_ID, //TGBot推送成员ID
-    COOKIE_QEYD: process.env.COOKIE_QEYD, //企鹅阅读ck
+    JD_COOKIE: process.env.JD_COOKIE, //cokie,多个用\n隔开即可
 };
 let Cookies = [];
 
@@ -28,17 +27,13 @@ async function downFile() {
 
 async function changeFiele(content, cookie) {
     //替换各种信息.
-    content = content.replace(/console\.log\(.*?脚本执行时间.*?=========\\n`\)/, "")
-    content = content.replace(/const notifyInterval=\d/, `const notifyInterval=3\nconst notify = $.isNode() ? require('./sendNotify') : '';`)
-    content = content.replace(/\$\.msg\(jsname,''/g, "notify.sendNotify('企鹅阅读'")
-    content = content.replace("$.getdata(qqreadurlKey)", "\"https://mqqapi.reader.qq.com/mqq/user/init\"")
-    content = content.replace("$.getdata(qqreadheaderKey)", JSON.stringify(cookie.split("@")[0]))
-    content = content.replace("$.getdata(qqreadtimeurlKey)", JSON.stringify(cookie.split("@")[1]))
-    content = content.replace("$.getdata(qqreadtimeheaderKey)", JSON.stringify(cookie.split("@")[2]))
-    //content = content.replace("i<18", "i<3")
+    content = content.replace("Env('京东赚京豆开团');", `Env('京东赚京豆开团');\nconst notify = $.isNode() ? require('./sendNotify') : '';`)
+    //content = content.replace(`require("./jdCookie.js")`, `{CookieJD:'${cookie}'}`)
+    content = content.replace(/require\(['|"].\/jdCookie\.js['|"]\)/, `{CookieJD:'${cookie}'}`)
+    content = content.replace(/\$\.msg\(\$\.name,/g, "notify.sendNotify($.name,")
     
     //替换源脚本中推送函数阻止推送
-    content = content.replace("require('./sendNotify')", "{sendNotify:function(){},serverNotify:function(){},BarkNotify:function(){},tgBotNotify:function(){},ddBotNotify:function(){},iGotNotify:function(){}}")
+    //content = content.replace("require('./sendNotify')", "{sendNotify:function(){},serverNotify:function(){},BarkNotify:function(){},tgBotNotify:function(){},ddBotNotify:function(){},iGotNotify:function(){}}")
     //console.log(content);
     await fs.writeFileSync('./execute.js', content, 'utf8')
 }
@@ -60,8 +55,8 @@ async function executeOneByOne() {
         await changeFiele(content, Cookies[i]);
         console.log("替换变量完毕");
         try {
-            //await exec("node execute.js", { stdio: "inherit" });//根据源脚本进行通知
-            await exec("node execute.js >> result.txt")//根据返回内容判断进行通知
+            await exec("node execute.js", { stdio: "inherit" });//根据源脚本进行通知
+            //await exec("node execute.js >> result.txt")//根据返回内容判断进行通知
         } catch (e) {
             console.log("执行异常:" + e);
             await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, "执行异常:" + e);
@@ -88,17 +83,13 @@ async function download_notify() {
 }
 */
 async function msg(content) {
-    content = content.replace(/(^\n*)|(\n*$)/g, "")//去返回内容头尾空行
+    content = content.replace(/(^\n*)|(\n*$)/g, "")
     content = content.replace(/\n{3,}/g, "\n\n")
     let d = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
     console.log('--------------------');
     console.log(content);
     console.log('--------------------');
-    var reg =/【现金余额】:([1-9]\d*\.?\d*|0\.\d*[1-9])元/g;
-    var gold = parseInt(reg.exec(content)[1].trim());
     if (d.getHours()==8 && d.getMinutes()<=22) {
-        await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
-    } else if (gold >= 10 && d.getHours()>=9 && d.getHours()<=22) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
     } else if (content.indexOf("Error") > 0) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
@@ -110,16 +101,17 @@ async function msg(content) {
 async function start() {
     //console.log(`当前执行时间:${new Date().toString()}`);
     console.log(`国际时间 (UTC+00)：${new Date().toLocaleString('chinese',{hour12:false})}`)
-    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}\n`)
-    if (!Secrets.COOKIE_QEYD) {
-        console.log("请填写 COOKIE_QEYD 后在继续");
+    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}`)
+    console.log(`引用脚本：${Secrets.SyncUrl}\n`)
+    if (!Secrets.JD_COOKIE) {
+        console.log("请填写 JD_COOKIE 后在继续");
         return;
     }
     if (!Secrets.SyncUrl) {
         console.log("请填写 SYNCURL 后在继续");
         return;
     }
-    Cookies = Secrets.COOKIE_QEYD.split("\n");
+    Cookies = Secrets.JD_COOKIE.split("&");
     console.log(`当前共${Cookies.length}个账号需要执行`);
     // 下载最新代码
     await downFile();

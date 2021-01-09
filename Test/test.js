@@ -1,11 +1,13 @@
 /*
-https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_factory.js
+感谢sazs34大佬的替换思路和脚本https://github.com/sazs34
+感谢ZIYE制作的企鹅阅读脚本https://github.com/18u
+https://raw.githubusercontent.com/ziye12/JavaScript/master/Task/qqreadnode.js
 */
 const exec = require("child_process").execSync;
 const fs = require("fs");
 const axios = require("axios");
 
-const $ = new Env('京喜工厂');
+const $ = new Env('企鹅阅读');
 const notify = $.isNode() ? require('../sendNotify') : '';
 
 // 公共变量
@@ -15,7 +17,7 @@ const Secrets = {
     BARK_PUSH: process.env.BARK_PUSH, //Bark推送
     TG_BOT_TOKEN: process.env.TG_BOT_TOKEN, //TGBot推送Token
     TG_USER_ID: process.env.TG_USER_ID, //TGBot推送成员ID
-    JD_COOKIE: process.env.JD_COOKIE, //cokie,多个用\n隔开即可
+    COOKIE_QEYD: process.env.COOKIE_QEYD, //企鹅阅读ck
 };
 let Cookies = [];
 
@@ -26,12 +28,29 @@ async function downFile() {
 }
 
 async function changeFiele(content, cookie) {
-    //替换各种信息.
-    content = content.replace("Env('京喜工厂');", `Env('京喜工厂');\nconst notify = $.isNode() ? require('./sendNotify') : '';`)
-    content = content.replace("require('./jdCookie.js')", `{CookieJD:'${cookie}'}`)
-    content = content.replace("$.result.push(", "$.result.push(`用户：${userName}`,")
-    content = content.replace(/\$\.msg\(\$\.name, '', `\\n/g, "notify.sendNotify($.name,`")
-    content = content.replace("$.getdata('gc_notifyTime');", "'0'")
+    //替换各种信息
+    content = content.replace("const BOX = 2;","const BOX = 1;")
+    //content = content.replace("const notifyInterval = 2;","const notifyInterval = 0;")
+    //content = content.replace(/if \(BOX == 1\)[\s\S]*?if \(BOX == 2\)/g,"if (BOX == 1){\nif (nowTimes.getHours() === 0 && (nowTimes.getMinutes() >= 0 && nowTimes.getMinutes() <= 59)) {\nawait qqreadtrack();//更新\n}\nawait qqreadtask();//任务列表\nif (task.data && ljyd.doneFlag == 0) {\nawait qqreaddayread();//阅读任务\n}\nawait $.wait(task.data.treasureBox.timeInterval)\ntz += `${JSON.parse(task.data)}\\n`;\ntz += `【距离开箱】：${task.data.treasureBox.timeInterval} ms\\n`;\nawait qqreadbox();//宝箱\nawait $.wait(4000)\nawait qqreadbox2();//宝箱翻倍\n}\nif (BOX == 2)")
+    content = content.replace(/if \(BOX == 1\)[\s\S]*?if \(BOX == 2\)/g,"if (BOX == 1){\nif (nowTimes.getHours() === 0 && (nowTimes.getMinutes() >= 0 && nowTimes.getMinutes() <= 59)) {\nawait qqreadtrack();//更新\n}\nawait qqreadtask();//任务列表\nif (task.data && ljyd.doneFlag == 0) {\nawait qqreaddayread();//阅读任务\n}\nawait $.wait(task.data.treasureBox.timeInterval)\nawait qqreadbox();//宝箱\nawait $.wait(4000)\nawait qqreadbox2();//宝箱翻倍\n}\nif (BOX == 2)")
+    //content = content.replace(/if \(BOX == 1\)[\s\S]*?if \(BOX == 2\)/g,"if (BOX == 1){\nif (nowTimes.getHours() === 0 && (nowTimes.getMinutes() >= 0 && nowTimes.getMinutes() <= 59)) {\nawait qqreadtrack();//更新\n}\nawait qqreadtask();//任务列表\nif (task.data && ljyd.doneFlag == 0) {\nawait qqreaddayread();//阅读任务\n}\nawait qqreadbox();//宝箱\nawait $.wait(4000)\nawait qqreadbox2();//宝箱翻倍\n}\nif (BOX == 2)")
+
+    content = content.replace(/const COOKIE.*?;/,"")
+    content = content.replace(/if \(COOKIE\.qqreadbodyVal\) \{[\s\S]*?\}/g, "")
+    content = content.replace(/Length = QQ_READ_COOKIES\.qqreadbodyVal\.length[\s\S]*?\}/g, "")
+    content = content.replace(/if \(\!COOKIE\.qqreadbodyVal\)/g,"if ($.isNode())")
+    content = content.replace(/(?:^|\n)console\.log\([\s\S]*?\);/g, "")
+    content = content.replace("let qqreadBD = [];", `let qqreadBD = [${JSON.stringify(cookie.split("@")[0])}];`)
+    content = content.replace("let qqreadtimeURL = [];", `let qqreadtimeURL = [${JSON.stringify(cookie.split("@")[1])}];`)
+    content = content.replace("let qqreadtimeHD = [];", `let qqreadtimeHD = [${JSON.stringify(cookie.split("@")[2])}];`)
+    content = content.replace(/function showmsg/, `function showmsg() {console.log(kz)}\nfunction GG`)
+    //content = content.replace(`CASH = ''`,"CASH = 10")
+    //content = content.replace(`$.getval("qeCASH");`,"10;")
+    
+    //content = content.replace(/if \(task\.data\.invite\.nextInviteConfig\) \{\n\s+tz \+=[\s\S]*?`[\s\S]*?kz \+=/g, "if (task.data.invite.nextInviteConfig) {\ntz +=")
+    //content = content.replace(/tz \+=\n/, "zz +=\n")
+    //content = content.replace(/kz \+=\n/, "tz +=\n")
+    content = content.replace(`if (box.code == 0 && box.data.amount)`,"if (box.data === null){\ntz +=`【宝箱已被其他进程打开】\\n`;}\n else")
 
     //替换源脚本中推送函数阻止推送
     //content = content.replace("require('./sendNotify')", "{sendNotify:function(){},serverNotify:function(){},BarkNotify:function(){},tgBotNotify:function(){},ddBotNotify:function(){},iGotNotify:function(){}}")
@@ -60,7 +79,6 @@ async function executeOneByOne() {
             //await exec("node execute.js >> result.txt")//根据返回内容判断进行通知
         } catch (e) {
             console.log("执行异常:" + e);
-            await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, "执行异常:" + e);
         }
         console.log("执行完毕");
         const path = "./result.txt";
@@ -84,13 +102,17 @@ async function download_notify() {
 }
 */
 async function msg(content) {
-    content = content.replace(/(^\n*)|(\n*$)/g, "")
+    content = content.replace(/(^\n*)|(\n*$)/g, "")//去返回内容头尾空行
     content = content.replace(/\n{3,}/g, "\n\n")
     let d = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
     console.log('--------------------');
     console.log(content);
     console.log('--------------------');
+    var reg =/【现金余额】:(\d+\.?\d*)元/;
+    var gold = reg.exec(content) == null ? 0 : parseInt(reg.exec(content)[1].trim());
     if (d.getHours()==8 && d.getMinutes()<=22) {
+        await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
+    } else if (gold >= 10 && d.getHours()>=9 && d.getHours()<=22) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
     } else if (content.indexOf("Error") > 0) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
@@ -102,16 +124,17 @@ async function msg(content) {
 async function start() {
     //console.log(`当前执行时间:${new Date().toString()}`);
     console.log(`国际时间 (UTC+00)：${new Date().toLocaleString('chinese',{hour12:false})}`)
-    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}\n`)
-    if (!Secrets.JD_COOKIE) {
-        console.log("请填写 JD_COOKIE 后在继续");
+    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}`)
+    console.log(`脚本引用：${Secrets.SyncUrl}\n`)
+    if (!Secrets.COOKIE_QEYD) {
+        console.log("请填写 COOKIE_QEYD 后在继续");
         return;
     }
     if (!Secrets.SyncUrl) {
         console.log("请填写 SYNCURL 后在继续");
         return;
     }
-    Cookies = Secrets.JD_COOKIE.split("&");
+    Cookies = Secrets.COOKIE_QEYD.split("\n");
     console.log(`当前共${Cookies.length}个账号需要执行`);
     // 下载最新代码
     await downFile();

@@ -1,16 +1,16 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: 返利网红包
+name: 百度极速版
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '1-16 2 5,9,10,11,12 * *'
+    - cron: '*/30 * * * *'
   watch:
     types: [started]
   repository_dispatch:
-    types: qeread
+    types: baidu_speed
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,9 +34,9 @@ jobs:
       - name: npm install
         run: |
           npm install
-      - name: "运行 【返利网红包】"
+      - name: "运行 【百度极速版】"
         run: |
-          node Scripts/flwhbziye_replace.js
+          node Scripts/baidu_speed_remote.js
         env:
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
@@ -46,5 +46,5 @@ jobs:
           DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
           DD_BOT_SECRET: ${{ secrets.DD_BOT_SECRET }}
           IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
-          SYNCURL: https://raw.githubusercontent.com/ziye12/JavaScript/master/flwhbziye.js
-          COOKIE_FLW: ${{ secrets.COOKIE_FLW }}
+          SYNCURL: https://raw.githubusercontent.com/Sunert/Scripts/master/Task/baidu_speed.js
+          BAIDU_COOKIE: ${{ secrets.BAIDU_COOKIE }}

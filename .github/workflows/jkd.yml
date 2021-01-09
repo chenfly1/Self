@@ -1,16 +1,16 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: 京喜金牌厂长
+name: 聚看点
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 */4 * * *'
+    - cron: '0 22 * * *'
   watch:
     types: [started]
   repository_dispatch:
-    types: jx_story
+    types: jkd
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,9 +34,9 @@ jobs:
       - name: npm install
         run: |
           npm install
-      - name: "运行 【京喜金牌厂长】"
+      - name: "运行 【聚看点】"
         run: |
-          node Scripts/jx_story_replace.js
+          node Scripts/jkd_remote.js
         env:
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
@@ -46,5 +46,5 @@ jobs:
           DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
           DD_BOT_SECRET: ${{ secrets.DD_BOT_SECRET }}
           IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
-          SYNCURL: https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_story.js
-          JD_COOKIE: ${{ secrets.JD_COOKIE }}
+          SYNCURL: https://raw.githubusercontent.com/shylocks/Loon/main/jkd.js
+          JKD_COOKIE: ${{ secrets.JKD_COOKIE }}

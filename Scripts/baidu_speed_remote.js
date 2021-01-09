@@ -1,11 +1,11 @@
 /*
-https://raw.githubusercontent.com/whyour/hundun/master/quanx/jx_factory_component.js
+https://raw.githubusercontent.com/Sunert/Scripts/master/Task/baidu_speed.js
 */
 const exec = require("child_process").execSync;
 const fs = require("fs");
 const axios = require("axios");
 
-const $ = new Env('京喜工厂plus');
+const $ = new Env('百度极速版');
 const notify = $.isNode() ? require('../sendNotify') : '';
 
 // 公共变量
@@ -15,7 +15,7 @@ const Secrets = {
     BARK_PUSH: process.env.BARK_PUSH, //Bark推送
     TG_BOT_TOKEN: process.env.TG_BOT_TOKEN, //TGBot推送Token
     TG_USER_ID: process.env.TG_USER_ID, //TGBot推送成员ID
-    JD_COOKIE: process.env.JD_COOKIE, //cokie,多个用\n隔开即可
+    BAIDU_COOKIE: process.env.BAIDU_COOKIE, //cokie,多个用\n隔开即可
 };
 let Cookies = [];
 
@@ -27,10 +27,12 @@ async function downFile() {
 
 async function changeFiele(content, cookie) {
     //替换各种信息.
-    content = content.replace("require('./jdCookie.js')", `{CookieJD:'${cookie}'}`)
-
+    content = content.replace(/Env\(['|"]百度极速版['|"]\);/, `Env('百度极速版');\nconst notify = $.isNode() ? require('./sendNotify') : '';`)
+    //content = content.replace(/require\(['|"].\/jdCookie\.js['|"]\)/, `{CookieJD:'${cookie}'}`)
+    content = content.replace(/\$\.msg\(\$\.name,.*?`/g, "notify.sendNotify($.name,`")
+    
     //替换源脚本中推送函数阻止推送
-    content = content.replace("require('./sendNotify')", "{sendNotify:function(){},serverNotify:function(){},BarkNotify:function(){},tgBotNotify:function(){},ddBotNotify:function(){},iGotNotify:function(){}}")
+    //content = content.replace("require('./sendNotify')", "{sendNotify:function(){},serverNotify:function(){},BarkNotify:function(){},tgBotNotify:function(){},ddBotNotify:function(){},iGotNotify:function(){}}")
     //console.log(content);
     await fs.writeFileSync('./execute.js', content, 'utf8')
 }
@@ -52,8 +54,8 @@ async function executeOneByOne() {
         await changeFiele(content, Cookies[i]);
         console.log("替换变量完毕");
         try {
-            //await exec("node execute.js", { stdio: "inherit" });//根据源脚本进行通知
-            await exec("node execute.js >> result.txt")//根据返回内容判断进行通知
+            await exec("node execute.js", { stdio: "inherit" });//根据源脚本进行通知
+            //await exec("node execute.js >> result.txt")//根据返回内容判断进行通知
         } catch (e) {
             console.log("执行异常:" + e);
             await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, "执行异常:" + e);
@@ -86,7 +88,7 @@ async function msg(content) {
     console.log('--------------------');
     console.log(content);
     console.log('--------------------');
-    if (d.getHours()==8 && d.getMinutes()<=30) {
+    if (d.getHours()==8 && d.getMinutes()<=22) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
     } else if (content.indexOf("Error") > 0) {
         await notify.sendNotify(`${d.toLocaleString('chinese',{hour12:false})}`, content);
@@ -98,16 +100,17 @@ async function msg(content) {
 async function start() {
     //console.log(`当前执行时间:${new Date().toString()}`);
     console.log(`国际时间 (UTC+00)：${new Date().toLocaleString('chinese',{hour12:false})}`)
-    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}\n`)
-    if (!Secrets.JD_COOKIE) {
-        console.log("请填写 JD_COOKIE 后在继续");
+    console.log(`北京时间 (UTC+08)：${new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toLocaleString('chinese',{hour12:false})}`)
+    console.log(`引用脚本：${Secrets.SyncUrl}\n`)
+    if (!Secrets.BAIDU_COOKIE) {
+        console.log("请填写 BAIDU_COOKIE 后在继续");
         return;
     }
     if (!Secrets.SyncUrl) {
         console.log("请填写 SYNCURL 后在继续");
         return;
     }
-    Cookies = Secrets.JD_COOKIE.split("&");
+    Cookies = Secrets.BAIDU_COOKIE.split("&");
     console.log(`当前共${Cookies.length}个账号需要执行`);
     // 下载最新代码
     await downFile();
